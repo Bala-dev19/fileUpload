@@ -12,11 +12,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import com.ideas2it.fileUpload.service.FileUploadService;
+
+@RestController
+@RequestMapping("/fileUpload")
 public class FileUploadController {
 
-	private static String UPLOAD_FOLDER = "/home/ubuntu/Desktop/spring-boot-fileupload/src/main/resources/";
+    
+	private static String UPLOAD_FOLDER = "/home/ubuntu/Desktop/fileUpload/src/main/resources/";
 
 	@RequestMapping("/upload")
 	public ModelAndView showUpload() {
@@ -27,24 +33,12 @@ public class FileUploadController {
 	public ModelAndView fileUpload(@RequestParam("file") MultipartFile file, 
 	    @RequestParam("noOfThreats") int threats, @RequestParam("noOfPartions") int partion,
 	    RedirectAttributes redirectAttributes) {
-
-		if (file.isEmpty()) {
-			return new ModelAndView("status", "message", "Please select a file and try again");
-		}
-
-		try {
-			// read and write the file to the slelected location-
-			byte[] bytes = file.getBytes();
-			Path path = Paths.get(UPLOAD_FOLDER + file.getOriginalFilename());
-			Files.write(path, bytes);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        FileUploadService fileUploadService = new FileUploadService();
+        String message = fileUploadService.fileUpload(file);
 		
 		System.out.println("threats" + threats);
         System.out.println("\n partion" + partion);
-		return new ModelAndView("status", "message", "File Uploaded sucessfully");
+		return new ModelAndView("status", "message", message);
 	}
 
 }

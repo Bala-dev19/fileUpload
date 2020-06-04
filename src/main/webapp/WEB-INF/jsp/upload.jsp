@@ -3,7 +3,7 @@
 
 	<h1>Spring Boot - File Upload</h1>
 
-	<form method="POST" action="/upload" enctype="multipart/form-data">
+	<form method="POST" action="/fileUpload/upload" enctype="multipart/form-data">
 		<input type="file" name="file" /><br />
 		threats:
 		<input type="number" name="noOfThreats" /><br />
