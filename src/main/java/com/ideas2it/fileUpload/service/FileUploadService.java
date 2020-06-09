@@ -6,11 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.ideas2it.fileUpload.repository.RedisRepository;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +25,9 @@ public class FileUploadService {
 	@Value("${OUTPUT_FOLDER}")
 	private static String OUTPUT_FOLDER;
 
+	@Autowired
+	private RedisRepository redisRepository;
+
 
 	public String fileUpload(MultipartFile file, int noOfPartitions) {
 
@@ -34,6 +39,7 @@ public class FileUploadService {
 			byte[] bytes = file.getBytes();
 			Path path = Paths.get(UPLOAD_FOLDER + file.getOriginalFilename());
 			Files.write(path, bytes);
+			redisRepository.saveContext("first_try", "test_ok");
 			startAutomation(file, noOfPartitions);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -44,7 +50,6 @@ public class FileUploadService {
 
 	public void startAutomation(MultipartFile file , int noOfPartitions) {
 		try {
-
 			Workbook inputWorkbook = new XSSFWorkbook(file.getInputStream());
 			Sheet inputWorkbookSheet = inputWorkbook.getSheetAt(0);
 			int totalRowCount = inputWorkbookSheet.getPhysicalNumberOfRows();
