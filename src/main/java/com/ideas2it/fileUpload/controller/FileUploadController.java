@@ -14,9 +14,6 @@ import com.ideas2it.fileUpload.service.FileUploadService;
 @RequestMapping("/fileUpload")
 public class FileUploadController {
 
-    
-	private static String UPLOAD_FOLDER = "/home/ubuntu/Desktop/fileUpload/src/main/resources/";
-
 	@RequestMapping("/upload")
 	public ModelAndView showUpload() {
 		return new ModelAndView("upload");

@@ -6,7 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.ideas2it.fileUpload.repository.RedisRepository;
+import com.ideas2it.fileUpload.model.ProgressCount;
+import com.ideas2it.fileUpload.repository.GenericRepository;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -14,9 +15,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
+@Service
 public class FileUploadService {
 
 	@Value("${UPLOAD_FOLDER}")
@@ -25,8 +28,9 @@ public class FileUploadService {
 	@Value("${OUTPUT_FOLDER}")
 	private static String OUTPUT_FOLDER;
 
+
 	@Autowired
-	private RedisRepository redisRepository;
+	private GenericRepository genericRepository;
 
 
 	public String fileUpload(MultipartFile file, int noOfPartitions) {
@@ -34,12 +38,13 @@ public class FileUploadService {
 		if (file.isEmpty()) {
 			return "Please select a file and try again";
 		}
-
 		try {
 			byte[] bytes = file.getBytes();
 			Path path = Paths.get(UPLOAD_FOLDER + file.getOriginalFilename());
 			Files.write(path, bytes);
-			redisRepository.saveContext("first_try", "test_ok");
+			ProgressCount progressCount = new ProgressCount();
+			progressCount.setProgressCount("1100");
+			genericRepository.save(progressCount);
 			startAutomation(file, noOfPartitions);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -57,8 +62,8 @@ public class FileUploadService {
 			Workbook outputWorkbook = null;
 			Sheet outputWorksheet = null;
 
-			for(int i = 1;i <= inputWorkbookSheet.getPhysicalNumberOfRows(); i++) {
-				if (i == 1) {
+			for(int i = 0;i < inputWorkbookSheet.getPhysicalNumberOfRows(); i++) {
+				if (i == 0) {
 					outputWorkbook = new XSSFWorkbook();
 					outputWorksheet = outputWorkbook.createSheet("output");
 				} else {
@@ -69,9 +74,11 @@ public class FileUploadService {
 				}
 				Row row = inputWorkbookSheet.getRow(i);
 				Row newRow = outputWorksheet.createRow(i);
-				for (int j = 0;j <= row.getPhysicalNumberOfCells(); j++) {
-					Cell newCell = newRow.createCell(j);
-					newCell.setCellValue(row.getCell(j).getStringCellValue());
+				for (int j = 0;j < row.getPhysicalNumberOfCells(); j++) {
+					if(null != row.getCell(j)) {
+						Cell newCell = newRow.createCell(j);
+						newCell.setCellValue("Test");
+					}
 				}
 			}
 
@@ -88,7 +95,7 @@ public class FileUploadService {
 				workbook.write(fileOut);
 				fileOut.close();
 				workbook.close();
-				outputFileCount++;
+				outputFileCount += 1;
 				Workbook newWorkbook = new XSSFWorkbook();
 				Sheet sheet = newWorkbook.createSheet("output");
 				return newWorkbook;
